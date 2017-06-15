@@ -72,8 +72,6 @@ imgdir = '/Users/elk/Study_Data/Pic_Ratings_Rd2';
 
 subj_imgdir = [imgdir filesep sprintf('%d',ID)];
 
-savefile = [subj_imgdir filesep sprintf('PicRating_CC_%d-%d.mat',ID,SESS)];
-
 if SESS == 1
     if isdir(subj_imgdir)
         %If Session 1 & subj dir already exists, throw error
@@ -154,7 +152,9 @@ if SESS == 1
             error('Failed to open or find the subject specific image directory as: %s.',subj_imgdir);
         end
         
-        %Check if output file exists     
+        %Check if output file exists
+        savefile = [subj_imgdir filesep sprintf('PicRating_CC_%d-%d.mat',ID,SESS)];
+        
         if exist(savefile,'file') == 2;
             commandwindow;
             warning('THIS FILE ALREADY EXISTS ARE YOU SURE YOU WANT TO CONTINUE?')
@@ -176,7 +176,7 @@ if SESS == 1
             try
                 cd(cat_folder);
             catch
-                error('Tried to open the folder for %s category but failed. Ensure it is saved as %s',FOODCAT.H.CAT{pic_cats_H(hhh)},cat_folder)
+                error('Tried to open the folder for %s category but failed. Ensure it is saved as %s',FOODCAT.H.CAT{hhh},cat_folder)
             end
             cat_pics = dir('*.jpg');
             for cpn = 1:length(cat_pics)
@@ -195,7 +195,7 @@ if SESS == 1
             try
                 cd(cat_folder);
             catch
-                error('Tried to open the folder for %s category but failed. Ensure it is saved as %s',FOODCAT.U.CAT{pic_cats_U(uuu)},cat_folder)
+                error('Tried to open the folder for %s category but failed. Ensure it is saved as %s',FOODCAT.U.CAT{uuu},cat_folder)
             end
             cat_pics = dir('*.jpg');
             for cpn = 1:length(cat_pics)
@@ -206,13 +206,13 @@ if SESS == 1
         end
         close(waiter);
         
-        cd(subj_imgdir)
-        
     end
 else
     %Else, it's not Session 1 so do Session >1 things
     
     %Check if output file exists
+    savefile = [subj_imgdir filesep sprintf('PicRating_CC_%d-%d.mat',ID,SESS)];
+    
     if exist(savefile,'file') == 2;
         commandwindow;
         warning('THIS FILE ALREADY EXISTS ARE YOU SURE YOU WANT TO CONTINUE?')
@@ -221,13 +221,11 @@ else
             error('File already exists. Please double-check and/or re-enter participant number and session information.');
         end
     end
-    
     try
         cd(subj_imgdir);
     catch
         error('Could not find the participant folder. Ensure that it exists and is saved as %s.\nAlternatively, you have said this is Session %d. Make sure this is accurate as well.',...
             subj_imgdir,SESS);
-    end
 end
 %Test if subject directory already exists. If it doesn't, make that
 %directory.
@@ -319,40 +317,40 @@ end
 % end
 
    
-%     %Figure out which Healthy photos to use...
-%     for hhh = 1:length(pic_cats_H);
-%         %open each category folder
-%         cat_folder = FOODCAT.H.Folders{pic_cats_H(hhh)};
-%         %Add try/catch to make sure can open each category folder
-%         try
-%             cd(cat_folder);
-%         catch
-%             error('Tried to open the folder for %s category but failed. Ensure it is saved as %s',FOODCAT.H.CAT{hhh},cat_folder)
-%         end
-%         cat_pics = dir('*.jpg');
-%         for cpn = 1:length(cat_pics)
-%             copyfile(cat_pics(cpn).name,subj_imgdir)
-%         end
-%     end
-%     
-%     cd(imgdir);
-%     
-%     %Figure out which Unhealthy photos to use...
-%     for uuu = 1:length(pic_cats_U);
-%         %open each category folder
-%         cat_folder = FOODCAT.U.Folders{pic_cats_U(uuu)};
-%         try
-%             cd(cat_folder);
-%         catch
-%             error('Tried to open the folder for %s category but failed. Ensure it is saved as %s',FOODCAT.U.CAT{uuu},cat_folder)
-%         end
-%         cat_pics = dir('*.jpg');
-%         for cpn = 1:length(cat_pics)
-%             copyfile(cat_pics(cpn).name,subj_imgdir)
-%         end
-%     end
-%     
-%     cd(subj_imgdir);
+    %Figure out which Healthy photos to use...
+    for hhh = 1:length(pic_cats_H);
+        %open each category folder
+        cat_folder = FOODCAT.H.Folders{pic_cats_H(hhh)};
+        %Add try/catch to make sure can open each category folder
+        try
+            cd(cat_folder);
+        catch
+            error('Tried to open the folder for %s category but failed. Ensure it is saved as %s',FOODCAT.H.CAT{hhh},cat_folder)
+        end
+        cat_pics = dir('*.jpg');
+        for cpn = 1:length(cat_pics)
+            copyfile(cat_pics(cpn).name,subj_imgdir)
+        end
+    end
+    
+    cd(imgdir);
+    
+    %Figure out which Unhealthy photos to use...
+    for uuu = 1:length(pic_cats_U);
+        %open each category folder
+        cat_folder = FOODCAT.U.Folders{pic_cats_U(uuu)};
+        try
+            cd(cat_folder);
+        catch
+            error('Tried to open the folder for %s category but failed. Ensure it is saved as %s',FOODCAT.U.CAT{uuu},cat_folder)
+        end
+        cat_pics = dir('*.jpg');
+        for cpn = 1:length(cat_pics)
+            copyfile(cat_pics(cpn).name,subj_imgdir)
+        end
+    end
+    
+    cd(subj_imgdir);
     PICS = struct;
     
     PICS.in.Un = dir('unhealthy*');
@@ -405,7 +403,7 @@ commandwindow;
 
 %%
 %change this to 0 to fill whole screen
-DEBUG=1;
+DEBUG=0;
 
 %set up the screen and dimensions
 
@@ -476,7 +474,7 @@ KbWait([],3);
 WaitSecs(1);
 
 
-for x = 1:20:length(PicRating_CC);
+for x = 1:20:length(PicRating_CC);  %UPDATE TO LENGTH OF GO PICS
     for y = 1:20;
         xy = x+(y-1);
         if xy > length(PicRating_CC)
