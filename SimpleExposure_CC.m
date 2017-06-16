@@ -95,7 +95,9 @@ end
 
 picratefolder = subj_dir; %fullfile(mdir,'Ratings');   %XXX: Make sure ratings files are in folder called "Ratings" within same folder as SimpleExposure_CC.m
 imgdir = fullfile(mdir,'MasterPics');             %XXX: Adjust accordingly Make sure THIS is true too.
-%  imgdir = '/Users/canelab/Documents/StudyTasks/MasterPics';    %for testing purposes
+% imgdir = mdir; %IF ABOVE DOESN"T WORK, TRY THIS ONE.
+
+% imgdir = '/Users/elk/Documents/Study_Tasks/MasterPics';    %for testing purposes
 
 randopics = 0;
 
@@ -197,7 +199,7 @@ else
     %selected from entire list of possible pics.
     
 %     trainpic = zeros(length(pictype),1);
-    piclist = [randperm(length(PICS.in.H),40)'; randperm(length(PICS.in.UnH),40)'; randperm(length(neutpics),STIM.neut_trials)'];
+    piclist = [randperm(length(PICS.in.H),20)'; randperm(length(PICS.in.UnH),20)'; randperm(length(neutpics),STIM.neut_trials)'];
 end
 
 %Concatenate these into a long list of trial types.
