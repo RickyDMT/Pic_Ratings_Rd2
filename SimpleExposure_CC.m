@@ -17,8 +17,8 @@ answer=inputdlg(prompt,'Please input subject info',1,defAns);
 
 ID=str2double(answer{1});
 % COND = str2double(answer{2});
-fmri = str2double(answer{4});
-SESS = str2double(answer{3});
+SESS = str2double(answer{2});
+fmri = str2double(answer{3});
 % prac = str2double(answer{4});
 
 
