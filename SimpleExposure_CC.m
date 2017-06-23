@@ -1,16 +1,22 @@
 function SimpleExposure_CC(varargin)
+% Notes on 2/19/15
+%Ratings file location: Make sure ratings files are in folder called "Ratings" within same folder as SimpleExposure_CC.m
+%Pics folder path: Adjust accordingly Make sure THIS is true too.
+%Only using session 1 ratings, regardless of fMRI session?: Assumes only uses ratings from Session 1. Change as needed.
+%Check Pic size & adjust imgrect accordingly.
+%Different sizes for different pic types?  Adjust accordingly.
 
 global KEY COLORS w wRect XCENTER YCENTER PICS STIM SimpExp trial
 
 %This is for food exposure!
 
-prompt={'SUBJECT ID' 'Condition' 'Session' 'fMRI (1 = Yes, 0 = No)'};
-defAns={'4444' '1' '1' '1'};
+prompt={'SUBJECT ID' 'Session' 'fMRI (1 = Yes, 0 = No)'};
+defAns={'4444' '1' '1'};
 
 answer=inputdlg(prompt,'Please input subject info',1,defAns);
 
 ID=str2double(answer{1});
-COND = str2double(answer{2});
+% COND = str2double(answer{2});
 fmri = str2double(answer{4});
 SESS = str2double(answer{3});
 % prac = str2double(answer{4});
@@ -47,8 +53,8 @@ COLORS.YELLOW = [255 255 0];
 COLORS.rect = COLORS.GREEN;
 
 STIM = struct;
-STIM.blocks = 2;
-STIM.trials = 30;
+STIM.blocks = 1;
+STIM.trials = 60;
 STIM.totes = STIM.blocks*STIM.trials;
 STIM.H_trials = 20; %40;
 STIM.UnH_trials = 20; %40;
@@ -84,9 +90,9 @@ end
 mdir = '/Users/sticelab/Desktop/CraveControl';
 subj_dir = [mdir filesep sprintf('%d',ID)];
 
-savedir = subj_dir; %[mdir filesep 'Results' filesep];
+% savedir = subj_dir; %[mdir filesep 'Results' filesep];
 savename = sprintf('SimpleExposure_CC_%d-%d.mat',ID,SESS);
-savefile = [savedir filesep savename];
+savefile = [mdir filesep savename];
 % Check if file exists...
 
 if exist(savefile,'file') == 2;
@@ -95,9 +101,7 @@ end
 
 picratefolder = subj_dir; %fullfile(mdir,'Ratings');   %XXX: Make sure ratings files are in folder called "Ratings" within same folder as SimpleExposure_CC.m
 imgdir = fullfile(mdir,'MasterPics');             %XXX: Adjust accordingly Make sure THIS is true too.
-% imgdir = mdir; %IF ABOVE DOESN"T WORK, TRY THIS ONE.
-
-% imgdir = '/Users/elk/Documents/Study_Tasks/MasterPics';    %for testing purposes
+%  imgdir = '/Users/canelab/Documents/StudyTasks/MasterPics';    %for testing purposes
 
 randopics = 0;
 
@@ -108,45 +112,34 @@ catch
 end
 
 
-if COND ==1;    %If EXP condition!
-    filen = sprintf('PicRating_CC_%d-1.mat',ID); %XXX: Assumes only uses ratings from Session 1. Change as needed.
-    try
-        p = open(filen);
-    catch
-        warning('Attemped to open file called "%s" for Subject #%d. Could not find and/or open this training rating file. Double check that you have typed in the subject number appropriately.',filen,ID);
-        commandwindow;
-        randopics = input('Would you like to continue with a random selection of images? [1 = Yes, 0 = No]');
-        if randopics == 1
-            cd(imgdir)
-            p = struct;
-            p.PicRating.no = dir('Unhealthy*');
-            p.PicRating.go = dir('Healthy*');
-            
-            PICS.in.H = struct('name',{p.PicRating.go(randperm(20)).name}');
-            PICS.in.UnH = struct('name',{p.PicRating.no(randperm(20)).name}');
-            
-        else
-            error('Task cannot proceed without images. Contact Erik (elk@uoregon.edu) if you have continued problems.')
-        end
+filen = sprintf('PicRating_CC_%d-1.mat',ID); %XXX: Assumes only uses ratings from Session 1. Change as needed.
+try
+    p = open(filen);
+catch
+    warning('Attemped to open file called "%s" for Subject #%d. Could not find and/or open this training rating file. Double check that you have typed in the subject number appropriately.',filen,ID);
+    commandwindow;
+    randopics = input('Would you like to continue with a random selection of images? [1 = Yes, 0 = No]');
+    if randopics == 1
+        cd(imgdir)
+        p = struct;
+        p.PicRating.no = dir('Unhealthy*');
+        p.PicRating.go = dir('Healthy*');
         
+        PICS.in.H = struct('name',{p.PicRating.go(randperm(STIM.H_trials)).name}');
+        PICS.in.UnH = struct('name',{p.PicRating.no(randperm(STIM.UnH_trials)).name}');
+        
+    else
+        error('Task cannot proceed without images. Contact Erik (elk@uoregon.edu) if you have continued problems.')
     end
-    cd(imgdir);
     
-    if randopics == 0;
-        PICS.in.H = struct('name',{p.PicRating.H.name}');
-        PICS.in.UnH = struct('name',{p.PicRating.U.name}');
-        
-    end
-else
-    cd(imgdir)
-%     p = struct;
-    PICS.in.H = dir('Unhealthy*');
-    PICS.in.UnH = dir('Healthy*');
 end
+cd(imgdir);
 
+if randopics == 0;
+    PICS.in.H = struct('name',{p.PicRating.H.name}');
+    PICS.in.UnH = struct('name',{p.PicRating.U.name}');
     
-
-% cd(imgdir);
+end
 
 neutpics = dir('water*');
 
@@ -160,46 +153,21 @@ end
 SimpExp = struct;
 
 
-    %1 = hi cal food, 2 = low cal food, 0 = water
-    pictype = [ones(STIM.H_trials,1); repmat(2,STIM.UnH_trials,1); zeros(STIM.neut_trials,1)];
+%1 = hi cal food, 2 = low cal food, 0 = water
+pictype = [ones(STIM.H_trials,1); repmat(2,STIM.UnH_trials,1); zeros(STIM.neut_trials,1)];
 
-if COND == 1    
-%     %1 = in training tasks, 0 = not in training tasks
-%     trainpic = [repmat([ones(20,1); zeros(20,1)],2,1); zeros(20,1)];
 
-    if randopics == 1
-        %Just choose some random pics
-%         trainpic = zeros(length(pictype),1);
-        piclist = [randperm(length(PICS.in.H),20)'; randperm(length(PICS.in.UnH),20)'; randperm(length(neutpics),STIM.neut_trials)'];
-
-    else
-        %1 = in training tasks, 0 = not in training tasks
-%         trainpic = [repmat([ones(STIM.H_trials,1); zeros(STIM.UnH_trials,1)],2,1); zeros(STIM.neut_trials,1)];
-
-        %%%%%Make long list of randomized #s to represent each pic
-        %%%%%Need random 20 from top 80 pics + random ordering of next 20 pics
-        %%%%%Repeat for low cal food...
-        %UPDATE 5/31/17: Need just top 20 images from each category
-%         pics_chosen_H = [p.PicRating.H.chosen];    
-%         pics_intrain_H = find(pics_chosen_H == 1);
-%         pics_outtrain_H = find(pics_chosen_H == 0);
-% 
-%         pics_chosen_U = [p.PicRating.U.chosen];    
-%         pics_intrain_U = find(pics_chosen_U == 1);
-%         pics_outtrain_U = find(pics_chosen_U == 0);
-
-%         piclist = [pics_intrain_H(randperm(length(pics_intrain_H),20))'; pics_outtrain_H(randperm(20))'; pics_intrain_U(randperm(length(pics_intrain_U),20))'; pics_outtrain_U(randperm(20))'; randperm(length(neutpics),STIM.neut_trials)'];
-        
-        %Because picratings are ordered, we can just choose the top 20 from
-        %that list.
-        piclist = [randperm(STIM.H_trials)'; randperm(STIM.UnH_trials)'; randperm(length(neutpics),STIM.neut_trials)'];
-    end
-else
-    %Otherwise, all pics are NOT in training tasks and are thus randomly
-    %selected from entire list of possible pics.
+if randopics == 1
+    %Just choose some random pics
     
-%     trainpic = zeros(length(pictype),1);
-    piclist = [randperm(length(PICS.in.H),20)'; randperm(length(PICS.in.UnH),20)'; randperm(length(neutpics),STIM.neut_trials)'];
+    piclist = [randperm(length(PICS.in.H),STIM.H_trials)'; randperm(length(PICS.in.UnH),STIM.UnH_trials)'; randperm(length(neutpics),STIM.neut_trials)'];
+    
+else
+    %UPDATE 5/31/17: Need just top 20 images from each category
+    
+    %Because picratings are ordered, we can just choose the top 20 from
+    %that list.
+    piclist = [randperm(STIM.H_trials)'; randperm(STIM.UnH_trials)'; randperm(length(neutpics),STIM.neut_trials)'];
 end
 
 %Concatenate these into a long list of trial types.
@@ -235,7 +203,7 @@ end
  end
 
     SimpExp.info.ID = ID;
-    SimpExp.info.Condition = COND;
+%     SimpExp.info.Condition = COND;
     SimpExp.info.date = sprintf('%s %2.0f:%02.0f',date,d(4),d(5));
     
 
@@ -295,7 +263,7 @@ halfside = fix((wRect(4)*.75)/2);
 x_halfside = fix((wRect(4)*.75*(1+1/3))/2); %XXX: CHECK PIC SIZE FOR PROPER PROPORTION W:H.
 
 imgrect = [XCENTER-x_halfside; YCENTER-halfside; XCENTER+x_halfside; YCENTER+halfside];
-imgrect_neut = [XCENTER-halfside; YCENTER-halfside; XCENTER+halfside; YCENTER+halfside];
+imgrect_neut = [XCENTER-x_halfside; YCENTER-halfside; XCENTER+x_halfside; YCENTER+halfside];
 
     
 %% Initial screen
@@ -376,25 +344,34 @@ for block = 1:STIM.blocks
 end
 
 %% Save all the data
-% savedir = [mdir filesep 'Results' filesep];
-% cd(savedir)
-% savename = sprintf('SimpleExposure_CC_%d-%d.mat',ID,SESS);
-
-if exist(savename,'file')==2;
-    savename = sprintf('SimpleExposure_CC_%d-%d_%s_%2.0f%02.0f.mat',ID,SESS,date,d(4),d(5));
-end
 
 try
-save([savedir savename],'SimpExp');
+    save(savefile,'SimpExp');
 catch
     warning('Something is amiss with this save. Retrying to save in a more general location...');
     try
-        save([mdir filesep savename],'SimpExp');
+        %This "if exists" is bascially taken care of above, where the
+        %script crashes if the file already exists. But if the script gets
+        %lost and needs to save some place ~random, it should check to make
+        %sure to not overwrite data...
+        if exist(savename,'file')==2;
+            savename = sprintf('SimpleExposure_CC_%d-%d_%s_%2.0f%02.0f.mat',ID,SESS,date,d(4),d(5));
+        end
+        save(savename,'SimpExp');
     catch
         warning('STILL problems saving....Try right-clicking on ''SimpExp'' and Save as...');
         save SimpExp
     end
 end
+
+SimpExp_table = struct2table(SimpExp.data);
+SimpExp_table.SUBID = repmat(SimpExp.info.ID,height(SimpExp_table),1);
+temp_date_cell = cell(height(SimpExp_table),1);
+[temp_date_cell{1:height(SimpExp_table)}] = deal(SimpExp.info.date);
+SimpExp_table.Date = temp_date_cell;
+
+savename_csv = [mdir filesep sprintf('SimpExp_Food_%d-%d.csv',ID,SESS)];
+writetable(SimpExp_table,savename_csv);
 
 DrawFormattedText(w,'That concludes this task. The assessor will be with you soon.','center','center',COLORS.WHITE);
 Screen('Flip', w);
