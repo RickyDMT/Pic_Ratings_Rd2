@@ -90,11 +90,12 @@ end
 mdir = '/Users/sticelab/Desktop/CraveControl';
 subj_dir = [mdir filesep sprintf('%d',ID)];
 
-% savedir = subj_dir; %[mdir filesep 'Results' filesep];
-savename = sprintf('SimpleExposure_CC_%d-%d.mat',ID,SESS);
-savefile = [mdir filesep savename];
-% Check if file exists...
 
+savename = sprintf('SimpleExposure_CC_%d-%d.mat',ID,SESS);
+%Save .mat & .csv in Subject level directory
+savefile = [subj_dir filesep savename];
+
+% Check if file exists...
 if exist(savefile,'file') == 2;
     error('File already exists. Please double-check and/or re-enter participant number and session information.');
 end
@@ -344,7 +345,7 @@ for block = 1:STIM.blocks
 end
 
 %% Save all the data
-
+%savefile = file in subject-level folder.
 try
     save(savefile,'SimpExp');
 catch
@@ -370,7 +371,7 @@ temp_date_cell = cell(height(SimpExp_table),1);
 [temp_date_cell{1:height(SimpExp_table)}] = deal(SimpExp.info.date);
 SimpExp_table.Date = temp_date_cell;
 
-savename_csv = [mdir filesep sprintf('SimpExp_Food_%d-%d.csv',ID,SESS)];
+savename_csv = [subj_dir filesep sprintf('SimpExp_Food_%d-%d.csv',ID,SESS)];
 writetable(SimpExp_table,savename_csv);
 
 DrawFormattedText(w,'That concludes this task. The assessor will be with you soon.','center','center',COLORS.WHITE);
